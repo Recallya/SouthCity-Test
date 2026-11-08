@@ -218,3 +218,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Database SQLite yang dibuat otomatis dari schema.sql
+southcity.db
