@@ -7,7 +7,7 @@ import os
 
 import streamlit as st
 
-from agent import API_KEY_ENV, MODEL, ask, format_rupiah
+from agent import API_KEY_ENV, ask, format_rupiah
 from database import get_users, init_db
 
 SAMPLE_QUESTIONS = [
@@ -54,9 +54,8 @@ for q in SAMPLE_QUESTIONS:
 # --- Halaman utama ---
 st.title("🏢 SouthCity Text-to-SQL")
 st.caption("Tanya data penjualan & tagihan properti dalam bahasa Indonesia.")
-key_env = API_KEY_ENV.get(MODEL.split(":")[0])
-if key_env and not os.getenv(key_env):
-    st.warning(f"{key_env} belum diisi. Isi di file .env (lokal) atau Secrets (Streamlit Cloud).")
+if not any(os.getenv(env) for env in API_KEY_ENV.values()):
+    st.warning("Belum ada API key LLM. Isi OPENAI_API_KEY / GOOGLE_API_KEY di file .env (lokal) atau Secrets (Streamlit Cloud).")
 
 
 def format_table(result):
@@ -104,7 +103,7 @@ if question:
                 result = ask(question, user)
             except Exception as e:
                 if "RESOURCE_EXHAUSTED" in str(e) or "429" in str(e):
-                    message = "⚠️ Kuota harian LLM sudah habis untuk semua model. Coba lagi besok, atau aktifkan billing."
+                    message = "⚠️ Kuota LLM sudah habis untuk semua model (batas Free tier / kredit demo). Coba lagi nanti."
                 else:
                     message = f"⚠️ Terjadi error: {e}"
                 result = {"answer": message, "steps": []}

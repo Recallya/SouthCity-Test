@@ -1,6 +1,6 @@
 # SouthCity Text-to-SQL
 
-Chatbot yang menjawab pertanyaan bisnis properti dalam bahasa Indonesia dengan cara membuat query SQL secara otomatis. Dibangun dengan LangGraph, Google Gemini, sqlglot, SQLite, dan Streamlit.
+Chatbot yang menjawab pertanyaan bisnis properti dalam bahasa Indonesia dengan cara membuat query SQL secara otomatis. Dibangun dengan LangGraph, OpenAI GPT (dengan Google Gemini sebagai cadangan), sqlglot, SQLite, dan Streamlit.
 
 **Demo live:** https://southcity-test-tr8xwypzwrd8n3di5rsrgr.streamlit.app/
 
@@ -8,7 +8,7 @@ Soal assessment asli ada di [ASSESSMENT.md](ASSESSMENT.md).
 
 **Cara mencoba:** pilih user di sidebar (Sales / Finance / Auditor), lalu klik contoh pertanyaan atau ketik sendiri. Setiap jawaban menampilkan angka dalam format Rupiah, **tabel pendukung**, dan panel *Detail proses* berisi langkah agent serta SQL sebelum dan sesudah filter RBAC.
 
-> **Catatan kuota demo:** aplikasi live memakai Google Gemini **Free tier**, yang dibatasi sekitar 20 request per hari untuk setiap model. Agent otomatis berpindah ke model cadangan (4 model), sehingga totalnya kira-kira **30–40 pertanyaan per hari**. Kalau kuota hari itu habis, aplikasi menampilkan pesan *"Kuota harian LLM sudah habis"*. Ini batas Free tier, bukan error aplikasi. Kuota di-reset setiap hari, atau aplikasi bisa dijalankan lokal dengan API key sendiri (lihat bagian "Menjalankan di komputer sendiri").
+> **Catatan kuota demo:** aplikasi live memakai **OpenAI `gpt-5.4-mini`** dengan kredit demo prabayar yang terbatas. Kalau kredit itu habis, agent otomatis berpindah ke **Google Gemini Free tier** (4 model cadangan, sekitar 30–40 pertanyaan per hari). Kalau semuanya habis, aplikasi menampilkan pesan *"Kuota LLM sudah habis"*. Ini batas kuota demo, bukan error aplikasi. Coba lagi nanti, atau jalankan secara lokal dengan API key sendiri (lihat bagian "Menjalankan di komputer sendiri").
 >
 > Kalau aplikasi sedang "tidur" karena lama tidak dibuka, klik tombol untuk membangunkannya dan tunggu sekitar 1 menit.
 
@@ -37,7 +37,17 @@ Baca file sesuai urutan berikut. Setiap file diawali komentar yang menjelaskan t
 
 ---
 
-## Mengambil API key Gemini (gratis)
+## Mengambil API key
+
+Cukup isi salah satu. Kalau keduanya diisi, GPT dipakai lebih dulu dan Gemini menjadi cadangan. Model yang key-nya kosong dilewati otomatis.
+
+### OpenAI (model utama, prabayar)
+
+1. Login di **platform.openai.com** dengan akun pribadi.
+2. Di **Billing**, isi kredit prabayar dan **matikan Auto recharge**, supaya biaya maksimal sama dengan kredit yang diisi.
+3. Di **API keys**, buat key baru (diawali `sk-...`), lalu isi `OPENAI_API_KEY`.
+
+### Gemini (cadangan, gratis)
 
 1. Buka **aistudio.google.com** dan login dengan **akun Google pribadi**.
 2. Klik **Get API key**, lalu **Create API key**. Kalau diminta, buat project Google Cloud baru.
@@ -47,8 +57,7 @@ Baca file sesuai urutan berikut. Setiap file diawali komentar yang menjelaskan t
 Catatan:
 - Langganan **Gemini Plus/Pro** (aplikasi gemini.google.com) terpisah dari API. Walaupun berlangganan, AI Studio tetap menampilkan **Free tier** sampai project dihubungkan ke Google Cloud Billing.
 - **Kuota Free tier sangat kecil: 20 request per hari untuk setiap model Flash** (terlihat dari pesan error 429 saat pengujian). Satu pertanyaan memakai 2 request (hasil 0–1 baris, ditolak, atau klarifikasi) atau 3 request (hasil banyak baris), ditambah 1 untuk setiap retry. Jadi satu model cukup untuk sekitar 7–10 pertanyaan per hari.
-- Model default adalah `gemini-3.8-flash`. Kalau model itu sibuk (503) atau kuotanya habis (429), agent otomatis mencoba cadangan berurutan: `gemini-3.6-flash` → `gemini-3.5-flash` → `gemini-3.5-flash-lite`. Model Pro (`gemini-3.1-pro-preview`) hanya tersedia di tier berbayar. Ganti lewat `LLM_MODEL` / `LLM_FALLBACK_MODELS` di `.env`; pilihannya ada di `.env.example`.
-- Untuk live testing interview, pertimbangkan mengaktifkan billing di AI Studio supaya kuotanya jauh lebih besar.
+- Urutan model default: `gpt-5.4-mini` → `gemini-3.8-flash` → `gemini-3.6-flash` → `gemini-3.5-flash` → `gemini-3.5-flash-lite`. Kalau satu model error, sibuk (503), atau kuotanya habis (429), agent otomatis mencoba model berikutnya. Ganti lewat `LLM_MODEL` / `LLM_FALLBACK_MODELS` di `.env`; pilihannya ada di `.env.example`.
 
 ## Menjalankan di komputer sendiri
 
@@ -66,7 +75,7 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-Salin `.env.example` menjadi `.env`, lalu isi `GOOGLE_API_KEY`.
+Salin `.env.example` menjadi `.env`, lalu isi `OPENAI_API_KEY` dan/atau `GOOGLE_API_KEY`.
 
 ```bash
 python test_guard.py
@@ -82,7 +91,8 @@ streamlit run app.py
 2. Buka share.streamlit.io, pilih **New app**, pilih repo, dan isi file utama `app.py`.
 3. Di **Advanced settings → Secrets**, isi:
    ```toml
-   GOOGLE_API_KEY = "api-key-anda"
+   OPENAI_API_KEY = "sk-..."
+   GOOGLE_API_KEY = "AIza..."
    ```
 4. Klik **Deploy**, lalu salin URL-nya ke bagian "Demo live" di atas.
 

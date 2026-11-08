@@ -27,7 +27,7 @@ Ketiga prompt (`TABLE_PROMPT`, `SQL_PROMPT`, `ANSWER_PROMPT`) adalah `ChatPrompt
 
 ## Penghematan request
 
-Free tier Gemini hanya memberi 20 request/hari per model, jadi jumlah panggilan LLM per pertanyaan dijaga sekecil mungkin:
+Kredit GPT terbatas, dan Free tier Gemini hanya memberi 20 request/hari per model, jadi jumlah panggilan LLM per pertanyaan dijaga sekecil mungkin:
 
 | Hasil query | Panggilan LLM | Cara menjawab |
 |---|---|---|
@@ -79,5 +79,5 @@ WHERE sc.CustomerName = 'Siti Rahma'
 | `System_Users` | Ditolak untuk semua role | Tabel autentikasi tidak dibutuhkan untuk pertanyaan bisnis |
 | Database | SQLite | Gratis, tanpa server, cocok untuk Streamlit Cloud. `schema.sql` ditulis dalam ANSI SQL yang kompatibel dengan MS SQL Server. Untuk pindah ke SQL Server produksi, cukup ganti koneksi di `database.py` (misalnya `pyodbc`) dan dialect `sqlglot` di `guard.py` dari `sqlite` ke `tsql` |
 | Format jawaban | Angka uang dalam format Rupiah + tabel pendukung yang selalu tampil | Sesuai permintaan soal. LLM menandai kolom uang (`money_columns`) di panggilan yang sama dengan pembuatan SQL, lalu UI menampilkannya sebagai `Rp 65.000.000` |
-| LLM | Google Gemini (`gemini-3.8-flash`), bisa diganti lewat `LLM_MODEL` | Model terbaru yang tersedia di Free tier. `init_chat_model` dari LangChain membuat model bisa diganti tanpa mengubah kode |
-| Model cadangan | 3.6 Flash → 3.5 Flash → 3.5 Flash-Lite lewat `with_fallbacks` dari LangChain | Saat dites, 3.8 Flash sering menolak dengan 503 "high demand", dan Free tier hanya memberi 20 request/hari **per model**. Rantai cadangan membuat agent otomatis pindah model ketika satu model sibuk atau kuotanya habis |
+| LLM utama | OpenAI `gpt-5.4-mini`, bisa diganti lewat `LLM_MODEL` | Cepat (3–6 detik per pertanyaan saat dites) dan stabil. Kredit prabayar dengan auto-recharge mati, jadi biaya demo punya batas atas yang pasti. `init_chat_model` dari LangChain membuat model bisa diganti tanpa mengubah kode |
+| Model cadangan | Gemini 3.8 Flash → 3.6 Flash → 3.5 Flash → 3.5 Flash-Lite (Free tier) lewat `with_fallbacks` dari LangChain | Kalau kredit GPT habis, agent pindah ke Gemini gratis. Saat dites, 3.8 Flash sering menolak dengan 503 "high demand", dan Free tier hanya memberi 20 request/hari **per model**, jadi dipasang beberapa model sekaligus. Model yang API key-nya kosong dilewati otomatis |
