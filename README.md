@@ -2,7 +2,7 @@
 
 Chatbot yang menjawab pertanyaan bisnis properti dalam bahasa Indonesia dengan cara membuat query SQL secara otomatis. Dibangun dengan LangGraph, Google Gemini, sqlglot, SQLite, dan Streamlit.
 
-**Demo live:** _(isi URL Streamlit Cloud di sini)_
+**Demo live:** https://southcity-test-tr8xwypzwrd8n3di5rsrgr.streamlit.app/
 
 Soal assessment asli ada di [ASSESSMENT.md](ASSESSMENT.md).
 
