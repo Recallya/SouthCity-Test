@@ -96,9 +96,10 @@ Aturan:
 6. Beri alias kolom yang jelas, contoh: AS SisaPokok.
 7. "template": kalimat jawaban singkat berbahasa Indonesia untuk hasil 1 baris, dengan placeholder {{AliasKolom}}. Tulis "Rp" sebelum nilai uang. Contoh: "Sisa pokok piutang Budi Santoso adalah Rp {{SisaPokok}}."
 8. "message": untuk sql, isi HANYA jika ada data yang tidak tersedia; untuk clarify/refuse, isi penjelasan ke user.
+9. "money_columns": daftar alias kolom hasil query yang berisi nilai uang (akan ditampilkan sebagai Rupiah).
 
 Balas HANYA JSON:
-{{"action": "sql|clarify|refuse", "sql": "...", "template": "...", "message": "..."}}"""),
+{{"action": "sql|clarify|refuse", "sql": "...", "template": "...", "message": "...", "money_columns": ["..."]}}"""),
     ("human", "{question}{retry_note}"),
 ])
 
@@ -119,6 +120,7 @@ class State(TypedDict, total=False):
     action: str        # "sql" | "clarify" | "refuse"
     message: str       # catatan dari LLM (mis. data yang tidak tersedia)
     template: str      # kalimat jawaban dengan placeholder, dibuat LLM bersama SQL
+    money_columns: list  # kolom hasil query yang berisi uang -> ditampilkan sebagai Rupiah di tabel
     sql: str           # SQL buatan LLM
     final_sql: str     # SQL setelah lolos guard + filter RBAC
     error: str
@@ -159,6 +161,14 @@ def format_value(value):
             return f"{number:,}".replace(",", ".") if abs(number) >= 10000 else str(number)
         return f"{value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     return str(value)
+
+
+def format_rupiah(value):
+    """65000000.0 -> 'Rp 65.000.000'. Nilai kosong/teks dikembalikan apa adanya."""
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        number = round(value)
+        return f"Rp {number:,}".replace(",", ".")
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +220,7 @@ def buat_sql(state):
         "action": action,
         "sql": result.get("sql", ""),
         "template": result.get("template", ""),
+        "money_columns": result.get("money_columns") or [],
         "message": result.get("message", ""),
         "error": "",
         "steps": [f"Percobaan {attempts}: LLM memilih action '{action}'"],

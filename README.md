@@ -6,6 +6,8 @@ Chatbot yang menjawab pertanyaan bisnis properti dalam bahasa Indonesia dengan c
 
 Soal assessment asli ada di [ASSESSMENT.md](ASSESSMENT.md).
 
+**Cara mencoba:** pilih user di sidebar (Sales / Finance / Auditor), lalu klik contoh pertanyaan atau ketik sendiri. Setiap jawaban menampilkan angka dalam format Rupiah, **tabel pendukung**, dan panel *Detail proses* berisi langkah agent serta SQL sebelum dan sesudah filter RBAC.
+
 > **Catatan kuota demo:** aplikasi live memakai Google Gemini **Free tier**, yang dibatasi sekitar 20 request per hari untuk setiap model. Agent otomatis berpindah ke model cadangan (4 model), sehingga totalnya kira-kira **30–40 pertanyaan per hari**. Kalau kuota hari itu habis, aplikasi menampilkan pesan *"Kuota harian LLM sudah habis"*. Ini batas Free tier, bukan error aplikasi. Kuota di-reset setiap hari, atau aplikasi bisa dijalankan lokal dengan API key sendiri (lihat bagian "Menjalankan di komputer sendiri").
 >
 > Kalau aplikasi sedang "tidur" karena lama tidak dibuka, klik tombol untuk membangunkannya dan tunggu sekitar 1 menit.

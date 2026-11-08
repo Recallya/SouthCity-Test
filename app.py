@@ -7,7 +7,7 @@ import os
 
 import streamlit as st
 
-from agent import API_KEY_ENV, MODEL, ask
+from agent import API_KEY_ENV, MODEL, ask, format_rupiah
 from database import get_users, init_db
 
 SAMPLE_QUESTIONS = [
@@ -59,8 +59,20 @@ if key_env and not os.getenv(key_env):
     st.warning(f"{key_env} belum diisi. Isi di file .env (lokal) atau Secrets (Streamlit Cloud).")
 
 
+def format_table(result):
+    """Hasil query -> baris tabel; kolom uang (ditandai LLM) ditampilkan dalam format Rupiah."""
+    money = set(result.get("money_columns") or [])
+    return [
+        {col: format_rupiah(val) if col in money else val for col, val in zip(result["columns"], row)}
+        for row in result["rows"]
+    ]
+
+
 def show_result(result):
     st.markdown(result["answer"])
+    if result.get("rows"):
+        st.caption("Tabel pendukung")
+        st.dataframe(format_table(result), hide_index=True)
     with st.expander("Detail proses"):
         for step in result.get("steps", []):
             st.write("•", step)
@@ -70,8 +82,6 @@ def show_result(result):
         if result.get("final_sql"):
             st.write("**SQL yang dijalankan (setelah filter RBAC):**")
             st.code(result["final_sql"], language="sql")
-        if result.get("rows"):
-            st.dataframe([dict(zip(result["columns"], r)) for r in result["rows"]])
 
 
 for msg in st.session_state[history_key]:
